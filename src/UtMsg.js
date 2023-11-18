@@ -1,16 +1,66 @@
 import React, { useState, useEffect } from 'react';
 
-const MiComponente = () => {
+const UtMsg = () => {
     const [datos, setDatos] = useState(null);
     const [nuevoDato, setNuevoDato] = useState({ nombre: '', apellido: '', cash: 0 });
-    
+    const [credenciales, setCredenciales] = useState({ login: '', contrasena: '' });
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
-        fetch('http://90.77.217.53:3333/data')
-            .then(response => response.json())
-            .then(data => setDatos(data))
-            .catch(error => console.error('Error al acceder a la API:', error));
-    }, []);
+        if (isLoggedIn) {
+            cargarDatos();
+        }
+    }, [isLoggedIn]);
+
+    const handleLoginChange = (event) => {
+        const { name, value } = event.target;
+        setCredenciales({ ...credenciales, [name]: value });
+    };
+
+    const handleLoginSubmit = async (event) => {
+        event.preventDefault();
+        try {
+            const response = await fetch('http://90.77.217.53:3333/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(credenciales),
+            });
+
+            if (response.ok) {
+                setIsLoggedIn(true);
+            } else {
+                alert('Credenciales incorrectas');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    if (!isLoggedIn) {
+        return (
+            <div>
+                <form onSubmit={handleLoginSubmit}>
+                    <input
+                        type="text"
+                        name="login"
+                        value={credenciales.login}
+                        onChange={handleLoginChange}
+                        placeholder="Login"
+                    />
+                    <input
+                        type="password"
+                        name="contrasena"
+                        value={credenciales.contrasena}
+                        onChange={handleLoginChange}
+                        placeholder="Contraseña"
+                    />
+                    <button type="submit">Iniciar sesión</button>
+                </form>
+            </div>
+        );
+    }
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -115,4 +165,4 @@ const MiComponente = () => {
     );
 };
 
-export default MiComponente;
+export default UtMsg;

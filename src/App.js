@@ -1,14 +1,13 @@
 import logo from './logo.svg';
 import './App.css';
-import './GetApiData.js'
-import MiComponente from './GetApiData.js';
+import UtMsg from './UtMsg.js';
 
 document.title = "Pagina de pruebas";
 
 function App() {
   return (
     <div className="App">
-        <MiComponente />
+        <UtMsg />
     </div>
   );
 }
