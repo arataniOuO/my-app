@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import Login from './Login';
 
 const UtMsg = () => {
     const [datos, setDatos] = useState(null);
     const [nuevoDato, setNuevoDato] = useState({ nombre: '', apellido: '', cash: 0 });
-    const [credenciales, setCredenciales] = useState({ login: '', contrasena: '' });
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
@@ -12,55 +12,21 @@ const UtMsg = () => {
         }
     }, [isLoggedIn]);
 
-    const handleLoginChange = (event) => {
+    const handleLoginSuccess = () => {
+        setIsLoggedIn(true);
+    };
+
+    const cargarDatos = () => {
+        fetch('http://90.77.217.53:3333/data')
+            .then(response => response.json())
+            .then(data => setDatos(data))
+            .catch(error => console.error('Error al acceder a la API:', error));
+    };
+
+    const handleChange = (event) => {
         const { name, value } = event.target;
-        setCredenciales({ ...credenciales, [name]: value });
+        setNuevoDato({ ...nuevoDato, [name]: value });
     };
-
-    const handleLoginSubmit = async (event) => {
-        event.preventDefault();
-        try {
-            const response = await fetch('http://90.77.217.53:3333/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(credenciales),
-            });
-
-            if (response.ok) {
-                setIsLoggedIn(true);
-            } else {
-                alert('Credenciales incorrectas');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    };
-
-    if (!isLoggedIn) {
-        return (
-            <div>
-                <form onSubmit={handleLoginSubmit}>
-                    <input
-                        type="text"
-                        name="login"
-                        value={credenciales.login}
-                        onChange={handleLoginChange}
-                        placeholder="Login"
-                    />
-                    <input
-                        type="password"
-                        name="contrasena"
-                        value={credenciales.contrasena}
-                        onChange={handleLoginChange}
-                        placeholder="Contraseña"
-                    />
-                    <button type="submit">Iniciar sesión</button>
-                </form>
-            </div>
-        );
-    }
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -79,20 +45,6 @@ const UtMsg = () => {
         .catch((error) => {
             console.error('Error:', error);
         });
-
-        setNuevoDato({ nombre: '', apellido: '', cash: 0 }); // Resetear formulario
-    };
-
-    const handleChange = (event) => {
-        const { name, value } = event.target;
-        setNuevoDato({ ...nuevoDato, [name]: value });
-    };
-
-    const cargarDatos = () => {
-        fetch('http://90.77.217.53:3333/data')
-            .then(response => response.json())
-            .then(data => setDatos(data))
-            .catch(error => console.error('Error al acceder a la API:', error));
     };
 
     const handleDelete = (id) => {
@@ -109,32 +61,39 @@ const UtMsg = () => {
         .catch(error => console.error('Error:', error));
     };
 
-    if (!datos) return <div>Cargando...</div>;
+    if (!isLoggedIn) {
+        return <Login onLoginSuccess={handleLoginSuccess} />;
+    }
+
+    if (!datos) {
+        return <div>Cargando...</div>;
+    }
 
     return (
         <div>
-            <h1 class="notchoose">Datos de la API</h1>
-            <table class="notchoose">
+            <h1 className="notchoose">Datos de la API</h1>
+            <table className="notchoose">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Nombre</th>
                         <th>Apellido</th>
-                        <th>Cantidad</th>
+                        <th>Cash</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {datos.map(item => (
-                        <tr key={item.id}>
-                            <td>
-                                <button onClick={() => handleDelete(item.id)}>Borrar</button>
+                    {datos.map((dato) => (
+                        <tr key={dato.id}>
+                            <td class="left">{dato.nombre}</td>
+                            <td class="left">{dato.apellido}</td>
+                            <td class="right">{dato.cash}</td>
+                            <td class="center">
+                                <button onClick={() => handleDelete(dato.id)}>
+                                    Eliminar
+                                </button>
                             </td>
-                            <td>{item.nombre}</td>
-                            <td>{item.apellido}</td>
-                            <td>{item.cash.toFixed(2)}</td>
                         </tr>
                     ))}
-                    
                 </tbody>
             </table>
             <form onSubmit={handleSubmit}>
@@ -157,9 +116,9 @@ const UtMsg = () => {
                     name="cash"
                     value={nuevoDato.cash}
                     onChange={handleChange}
-                    placeholder="Cantidad"
+                    placeholder="Cash"
                 />
-                <button type="submit">Agregar</button>
+                <button type="submit">Añadir</button>
             </form>
         </div>
     );
